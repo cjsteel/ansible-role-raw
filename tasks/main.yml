@@ -1,0 +1,84 @@
+
+---
+# raw/tasks/main.yml
+
+#- name: include assert.yml
+#  import_tasks: assert.yml
+#  run_once: yes
+#  delegate_to: localhost
+
+- name: install requirements
+  package:
+    name: "{{ raw_requirements }}"
+    state: present
+  register: raw_install_requirements
+  until: raw_install_requirements is succeeded
+  retries: 3
+
+- name: install raw
+  package:
+    name: "{{ raw_packages }}"
+    state: present
+  register: raw_install_raw
+  until: raw_install_raw is succeeded
+  retries: 3
+
+- name: configure raw application(s)
+  template:
+    src: "{{ raw_config_file }}.j2"
+    dest: "{{ raw_config_directory }}/{{ raw_config_file }}"
+  when:
+    - raw_config_file is defined
+  notify:
+    - restart raw
+
+- name: "loop through list of commands"
+  debug:
+    msg: "An item: {{ item }}"
+  with_items: "{{ raw_commands }}"
+
+- name: Create output directory
+  file:
+    path: /tmp/output
+    mode: 0700
+    state: directory
+
+- name: run raw commands
+  raw: "{{ item }}"
+  register: raw_commands_raw
+  with_items: "{{ raw_commands }}"
+
+- name: Ensure for correct permissions
+  file:
+    path: "{{ item }}"
+    mode: 0600
+    state: file
+  with_items: "{{ raw_outputs }}"
+
+- name: "loop through output"
+  debug:
+    msg: "An item: {{ item }}"
+  with_items: "{{ raw_commands_raw }}"
+
+- name: Create output directory
+  delegate_to: localhost
+  become: no
+  file:
+    path: "{{ inventory_dir }}/host_facts/{{ ansible_hostname }}"
+    mode: 0700
+    state: directory
+
+- name: Fetch stuff from the remote and save to local
+  synchronize:
+    src: "/tmp/output/"
+    dest: "{{ inventory_dir }}/host_facts/{{ ansible_hostname }}/"
+    mode: pull
+
+- name: start and enable service
+  service:
+    name: "{{ raw_service }}"
+    state: started
+    enabled: yes
+  when:
+    - ansible_virtualization_type != "docker"
+    - raw_service != "no_service"

@@ -1,0 +1,12 @@
+---
+
+- name: test if raw_X is set correctly
+  assert:
+    that:
+      - raw_X is defined
+      - raw_X is iterable
+      - raw_X is number
+      - raw_X is boolean
+      - raw_X = 0
+      - raw_X in [ "a", "b" ]
+    quiet: yes

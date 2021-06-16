@@ -1,0 +1,9 @@
+---
+# raw/handlers/main.yml
+
+- name: restart raw
+  service:
+    name: "{{ raw_service }}"
+    state: restarted
+  when:
+    - ansible_virtualization_type != "docker"

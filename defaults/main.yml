@@ -1,0 +1,96 @@
+---
+# defaults file for raw
+
+#raw_name: raw
+#raw_directory: /opt
+#raw_version: 8
+
+#raw_user: raw
+#raw_group: raw
+
+#raw_interfaces:
+#  - address: 127.0.0.1
+
+#raw_server:
+#  - name: server.example.com
+#    options:
+#      - buffer
+
+#raw_service_state: started
+#raw_service_enabled: yes
+
+_raw_requirements:
+  default:
+    - dmidecode
+  Alpine:
+    - dmidecode
+  Archlinux:
+    - dmidecode
+  Debian:
+    - dmidecode
+  CentOS:
+    - dmidecode
+  CentOS-7:
+    - dmidecode
+  ClearLinux:
+    - dmidecode
+  Fedora:
+    - dmidecode
+  openSUSE Leap:
+    - dmidecode
+  RedHat-7:
+    - dmidecode
+  Redhat:
+    - dmidecode
+  Ubuntu:
+    - dmidecode
+
+raw_requirements: "{{ _raw_requirements[ansible_distribution ~ '-' ~ ansible_distribution_major_version] | default(_raw_requirements[ansible_distribution] | default(_raw_requirements['default'])) }}"
+
+
+_raw_packages:
+  default:
+    - dmidecode
+
+raw_packages: "{{ _raw_packages[ansible_distribution ~ '-' ~ ansible_distribution_major_version] | default(_raw_packages[ansible_distribution] | default(_raw_packages['default'])) }}"
+
+
+_raw_commands:
+  default:
+    - mkdir /tmp/output
+    - /usr/sbin/dmidecode > /tmp/output/dmidecode
+    - /usr/bin/ls -al > /tmp/output/ls_output
+
+raw_commands: "{{ _raw_commands[ansible_distribution ~ '-' ~ ansible_distribution_major_version] | default(_raw_commands[ansible_distribution] | default(_raw_commands['default'])) }}"
+
+_raw_outputs:
+  default:
+    - output/dmidecode
+    - output/ls
+
+raw_outputs: "{{ _raw_outputs[ansible_distribution ~ '-' ~ ansible_distribution_major_version] | default(_raw_outputs[ansible_distribution] | default(_raw_outputs['default'])) }}"
+
+
+_raw_config_directory: []
+#  default: /etc
+
+raw_config_directory: "{{ _raw_config_directory[ansible_distribution] | default(_raw_config_directory['default']) }}"
+
+
+_raw_configuration_file: []
+#  default: raw.conf
+#  Alpine: rawd.conf
+#  RedHat-7: raw.conf
+#  RedHat: raw.conf
+
+raw_configuration_file: "{{ _raw_configuration_file[ansible_os_family ~ '-' ~ ansible_distribution_major_version] | default(_raw_configuration_file[ansible_os_family] | default(_raw_configuration_file['default'])) }}"
+
+
+_raw_service:
+  default: no_service # set to "no_service" if not required
+#  Debian: raw
+#  Alpine: openrawd
+#  RedHat-7: rawd
+#  RedHat: rawd
+
+raw_service: "{{ _raw_service[ansible_distribution] | default(_raw_service['default']) }}"
